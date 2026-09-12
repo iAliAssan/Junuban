@@ -1,0 +1,132 @@
+.line {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: var(--space-4);
+  padding-block: var(--space-5);
+  border-bottom: 1px solid var(--line);
+}
+
+.line:last-child {
+  border-bottom: none;
+}
+
+.imageWrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--sand);
+  flex-shrink: 0;
+}
+
+.imageWrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholderImage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--ink-45);
+  font-size: var(--text-caption-size);
+}
+
+.details {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
+.name a:hover {
+  color: var(--terracotta-dark);
+}
+
+.meta {
+  font-size: var(--text-meta-size);
+  color: var(--ink-45);
+  overflow-wrap: break-word;
+}
+
+.removeButton {
+  flex-shrink: 0;
+  font-size: var(--text-caption-size);
+  color: var(--ink-45);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.removeButton:hover:not(:disabled) {
+  color: var(--error);
+  background: var(--error-tint);
+}
+
+.removeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bottomRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.priceBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.unitPrice {
+  font-size: var(--text-caption-size);
+  color: var(--ink-45);
+}
+
+.lineTotal {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+}
+
+.availabilityWarning {
+  font-size: var(--text-caption-size);
+  color: var(--warning);
+  background: var(--warning-tint);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  width: fit-content;
+}
+
+@media (min-width: 560px) {
+  .line {
+    grid-template-columns: 96px 1fr;
+  }
+
+  .imageWrap {
+    width: 96px;
+    height: 96px;
+  }
+}

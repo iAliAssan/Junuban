@@ -1,0 +1,94 @@
+.layout {
+  padding-bottom: var(--space-8);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 1000px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-8);
+    align-items: start;
+  }
+}
+
+.categoryLabel {
+  font-size: var(--text-label-size);
+  letter-spacing: var(--text-label-ls);
+  color: var(--terracotta-dark);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--space-2);
+}
+
+.title {
+  font-size: var(--text-page-title-size);
+  line-height: var(--text-page-title-lh);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-3);
+}
+
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--ink-45);
+  margin-bottom: var(--space-5);
+}
+
+.harvestBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-caption-size);
+  color: var(--moss);
+  background: var(--success-tint);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-5);
+  width: fit-content;
+}
+
+.description {
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-lh);
+  color: var(--ink-70);
+  margin-top: var(--space-6);
+}
+
+.producerCard {
+  margin-top: var(--space-7);
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.producerCardTitle {
+  font-size: var(--text-section-title-size);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-3);
+}
+
+.producerBio {
+  font-size: var(--fs-sm);
+  line-height: var(--text-body-sm-lh);
+  color: var(--ink-70);
+}
+
+.producerEntry {
+  margin-bottom: var(--space-4);
+}
+
+.producerEntry:last-child {
+  margin-bottom: 0;
+}
+
+.producerEntryName {
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-1);
+}

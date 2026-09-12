@@ -1,0 +1,721 @@
+// ─────────────────────────────────────────────────────────────────────────
+// Junubân — Prisma schema
+//
+// Business-model note (LOCKED — see master implementation prompt §7):
+//   Product → Producer → ProductProducer → WeightOption → Variant → Inventory
+//
+//   - A `Product` can be supplied by several `Producer`s. The join table
+//     `ProductProducer` represents "this producer supplies this product".
+//   - `WeightOption` defines the sellable package sizes for a product
+//     (e.g. 250g / 500g / 1kg), independent of who supplies it.
+//   - `Variant` is the sellable unit: a specific (ProductProducer ×
+//     WeightOption) pair, each with its OWN price (never derived from a
+//     per-kilogram formula).
+//   - `Inventory` tracks raw stock in GRAMS at the ProductProducer level
+//     (the bulk lot bought from that producer for that product), because
+//     the same bulk lot is packaged into multiple weight variants.
+//     Consumption per order line = weightOption.grams * quantity.
+//     Available stock (in packages, for a given variant) =
+//       floor((inventory.onHandGrams - inventory.reservedGrams) / weightOption.grams)
+// ─────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────────── Enums ──────────────────────────────────
+
+enum AdminRole {
+  OWNER
+  STAFF
+}
+
+enum AdminStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum CustomerStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum CategoryStatus {
+  ACTIVE
+  HIDDEN
+}
+
+enum ProducerStatus {
+  ACTIVE
+  HIDDEN
+}
+
+enum ProductType {
+  SIMPLE
+  BUNDLE
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum DiscountStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  ONLINE
+  CARD_TO_CARD
+  SHEBA
+}
+
+enum PaymentAttemptStatus {
+  PENDING
+  REQUIRES_CONFIRMATION
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum ReservationStatus {
+  ACTIVE
+  CONSUMED
+  RELEASED
+  EXPIRED
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum StockAdjustmentReason {
+  RESTOCK
+  CORRECTION
+  DAMAGED
+  ORDER_CONSUMPTION
+  RESERVATION_RELEASE
+  MANUAL_OTHER
+}
+
+// ───────────────────────────── Admin ──────────────────────────────────
+
+/// Back-office users. Entirely separate identity space from customers —
+/// never merge, for security isolation between staff/owner and shoppers.
+model AdminUser {
+  id           String      @id @default(uuid()) @db.Uuid
+  email        String      @unique
+  passwordHash String      @map("password_hash") // Argon2id
+  fullName     String      @map("full_name")
+  role         AdminRole   @default(STAFF)
+  status       AdminStatus @default(ACTIVE)
+  lastLoginAt  DateTime?   @map("last_login_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  statusChangesAuthored  OrderStatusHistory[]     @relation("StatusChangedByAdmin")
+  stockAdjustments       StockAdjustment[]        @relation("StockAdjustedByAdmin")
+  moderatedReviews       Review[]                 @relation("ReviewModeratedByAdmin")
+  updatedContentPages    ContentPage[]            @relation("ContentPageUpdatedByAdmin")
+  updatedSiteSettings    SiteSettings[]           @relation("SiteSettingsUpdatedByAdmin")
+  confirmedPayments      PaymentAttempt[]         @relation("PaymentConfirmedByAdmin")
+  activityLogEntries     ActivityLog[]            @relation("ActivityLogAdmin")
+
+  @@map("admin_users")
+}
+
+/// Append-only audit trail of admin mutations. Owner-only access is
+/// enforced at the API layer, never merely hidden in the UI.
+model ActivityLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  adminId    String?  @map("admin_id") @db.Uuid
+  admin      AdminUser? @relation("ActivityLogAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+  action     String // e.g. "product.update", "order.status_change"
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([adminId])
+  @@map("activity_log")
+}
+
+// ──────────────────────────── Customers ─────────────────────────────
+
+/// Customer accounts. Mobile + OTP is the ONLY authentication method —
+/// there is no password field on this model by design.
+model Customer {
+  id        String         @id @default(uuid()) @db.Uuid
+  phone     String         @unique // normalized E.164-ish Iranian mobile, e.g. +989121234567
+  fullName  String?        @map("full_name")
+  email     String?        @unique
+  status    CustomerStatus @default(ACTIVE)
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  addresses      Address[]
+  carts          Cart[]
+  orders         Order[]
+  reviews        Review[]
+  sessions       CustomerSession[]
+  discountUsages DiscountUsage[]
+
+  @@map("customers")
+}
+
+/// DB audit trail for OTP requests. Redis is the *active* store used for
+/// verification hot-path; this table exists for auditability, abuse
+/// investigation, and rate-limit fallback if Redis is unavailable.
+model OtpRequest {
+  id          String    @id @default(uuid()) @db.Uuid
+  phone       String
+  codeHash    String    @map("code_hash") // salted hash, never the raw code
+  purpose     String    @default("login") // login | phone_change, etc.
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5) @map("max_attempts")
+  expiresAt   DateTime  @map("expires_at")
+  verifiedAt  DateTime? @map("verified_at")
+  ipAddress   String?   @map("ip_address")
+  userAgent   String?   @map("user_agent")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([phone, createdAt])
+  @@map("otp_requests")
+}
+
+/// Customer session. Only a hash of the session token is stored —
+/// the raw token lives solely in the `junuban_session` httpOnly cookie.
+model CustomerSession {
+  id         String    @id @default(uuid()) @db.Uuid
+  customerId String    @map("customer_id") @db.Uuid
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique @map("token_hash")
+  userAgent  String?   @map("user_agent")
+  ipAddress  String?   @map("ip_address")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  lastSeenAt DateTime  @default(now()) @map("last_seen_at")
+  /// Rolling ~7-day renewal window, refreshed on use.
+  expiresAt  DateTime  @map("expires_at")
+  /// Hard 30-day ceiling regardless of renewal.
+  absoluteExpiresAt DateTime @map("absolute_expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+
+  @@index([customerId])
+  @@map("customer_sessions")
+}
+
+model Address {
+  id            String    @id @default(uuid()) @db.Uuid
+  customerId    String    @map("customer_id") @db.Uuid
+  customer      Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  recipientName String    @map("recipient_name")
+  phone         String
+  province      String
+  city          String
+  addressLine   String    @map("address_line")
+  postalCode    String    @map("postal_code") // 10-digit Iranian format
+  isDefault     Boolean   @default(false) @map("is_default")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([customerId])
+  @@map("addresses")
+}
+
+// ──────────────────────────── Catalog ───────────────────────────────
+
+model Category {
+  id        String         @id @default(uuid()) @db.Uuid
+  slug      String         @unique
+  name      String
+  iconKey   String?        @map("icon_key")
+  sortOrder Int            @default(0) @map("sort_order")
+  status    CategoryStatus @default(ACTIVE)
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Producer {
+  id        String         @id @default(uuid()) @db.Uuid
+  slug      String         @unique
+  name      String
+  bio       String?
+  region    String // e.g. "میناب، هرمزگان"
+  province  String
+  verified  Boolean        @default(false)
+  status    ProducerStatus @default(ACTIVE)
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  photo           Media?
+  productLinks    ProductProducer[]
+
+  @@map("producers")
+}
+
+model Product {
+  id              String        @id @default(uuid()) @db.Uuid
+  slug            String        @unique
+  name            String
+  description     String?
+  categoryId      String        @map("category_id") @db.Uuid
+  category        Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  type            ProductType   @default(SIMPLE)
+  status          ProductStatus @default(DRAFT)
+  /// Optional descriptive attribute, e.g. "برداشت پاییز ۱۴۰۳". Null when
+  /// not applicable/known for a product — the PDP must render its
+  /// absence gracefully rather than showing empty labels.
+  harvestSeason   String?       @map("harvest_season")
+  /// Denormalized cache, recomputed whenever an approved review changes.
+  avgRating       Decimal?      @map("avg_rating") @db.Decimal(2, 1)
+  reviewCount     Int           @default(0) @map("review_count")
+  metaTitle       String?       @map("meta_title")
+  metaDescription String?       @map("meta_description")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  producers      ProductProducer[]
+  weightOptions  WeightOption[]
+  images         Media[]
+  reviews        Review[]
+  bundleOf       BundleItem[]      @relation("BundleParent")
+  partOfBundles  BundleItem[]      @relation("BundleChild")
+
+  @@index([categoryId])
+  @@index([status])
+  @@map("products")
+}
+
+/// "This producer supplies this product." Inventory (raw grams) is
+/// tracked per row here, because a bulk lot from one producer is shared
+/// across all weight variants packaged from it.
+model ProductProducer {
+  id         String   @id @default(uuid()) @db.Uuid
+  productId  String   @map("product_id") @db.Uuid
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  producerId String   @map("producer_id") @db.Uuid
+  producer   Producer @relation(fields: [producerId], references: [id], onDelete: Restrict)
+  isDefault  Boolean  @default(false) @map("is_default")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  inventory Inventory?
+  variants  Variant[]
+  stockAdjustments StockAdjustment[]
+
+  @@unique([productId, producerId])
+  @@index([producerId])
+  @@map("product_producers")
+}
+
+/// Reusable package-size definitions for a product (e.g. 250g / 500g / 1kg).
+model WeightOption {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label     String // e.g. "۵۰۰ گرم"
+  grams     Int // authoritative numeric weight used for stock consumption
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  variants Variant[]
+
+  @@unique([productId, grams])
+  @@map("weight_options")
+}
+
+/// The actual sellable unit: Product + Producer + Weight, with its own
+/// independent price (never derived by a per-kg formula).
+model Variant {
+  id                String       @id @default(uuid()) @db.Uuid
+  productProducerId String       @map("product_producer_id") @db.Uuid
+  productProducer   ProductProducer @relation(fields: [productProducerId], references: [id], onDelete: Cascade)
+  weightOptionId    String       @map("weight_option_id") @db.Uuid
+  weightOption      WeightOption @relation(fields: [weightOptionId], references: [id], onDelete: Restrict)
+  price             Int // Toman, whole-number currency
+  sku               String       @unique
+  isActive          Boolean      @default(true) @map("is_active")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  cartItems              CartItem[]
+  orderItems             OrderItem[]
+  inventoryReservations  InventoryReservation[]
+  bundleItemLinks        BundleItem[]
+
+  @@unique([productProducerId, weightOptionId])
+  @@map("variants")
+}
+
+/// Raw bulk stock (in grams) held for one product+producer lot.
+model Inventory {
+  id                    String   @id @default(uuid()) @db.Uuid
+  productProducerId     String   @unique @map("product_producer_id") @db.Uuid
+  productProducer       ProductProducer @relation(fields: [productProducerId], references: [id], onDelete: Cascade)
+  onHandGrams           Int      @default(0) @map("on_hand_grams")
+  reservedGrams         Int      @default(0) @map("reserved_grams")
+  lowStockThresholdGrams Int?    @map("low_stock_threshold_grams")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  @@map("inventory")
+}
+
+/// Time-boxed hold on stock created during checkout. TTL = 15 minutes
+/// (see INVENTORY_RESERVATION_TTL_MINUTES). Consumption and release must
+/// be transactional and concurrency-safe.
+model InventoryReservation {
+  id         String             @id @default(uuid()) @db.Uuid
+  variantId  String             @map("variant_id") @db.Uuid
+  variant    Variant            @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  orderId    String?            @map("order_id") @db.Uuid
+  order      Order?             @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  quantity   Int // number of packages
+  grams      Int // quantity * weightOption.grams at time of reservation
+  status     ReservationStatus  @default(ACTIVE)
+  expiresAt  DateTime           @map("expires_at")
+  createdAt  DateTime           @default(now()) @map("created_at")
+  releasedAt DateTime?          @map("released_at")
+
+  @@index([variantId, status])
+  @@index([status, expiresAt])
+  @@map("inventory_reservations")
+}
+
+model StockAdjustment {
+  id                 String                 @id @default(uuid()) @db.Uuid
+  productProducerId  String                 @map("product_producer_id") @db.Uuid
+  productProducer    ProductProducer        @relation(fields: [productProducerId], references: [id], onDelete: Cascade)
+  changeGrams        Int                    @map("change_grams") // positive = restock, negative = deduction/correction
+  reason             StockAdjustmentReason
+  note               String?
+  changedByAdminId   String?                @map("changed_by_admin_id") @db.Uuid
+  changedByAdmin     AdminUser?             @relation("StockAdjustedByAdmin", fields: [changedByAdminId], references: [id], onDelete: SetNull)
+  createdAt          DateTime               @default(now()) @map("created_at")
+
+  @@index([productProducerId])
+  @@map("stock_adjustments")
+}
+
+/// Configurable packaging choice, selected per cart item. If it changes
+/// the price it must produce a commercially distinct cart line.
+model PackagingOption {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String // e.g. "بسته‌بندی استاندارد", "جعبه هدیه"
+  priceDelta Int      @default(0) @map("price_delta") // Toman, added to line price
+  isActive   Boolean  @default(true) @map("is_active")
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@map("packaging_options")
+}
+
+/// Gift-box / bundle composition: which products (and optionally which
+/// specific variant) make up a `type = BUNDLE` product.
+model BundleItem {
+  id               String   @id @default(uuid()) @db.Uuid
+  bundleProductId  String   @map("bundle_product_id") @db.Uuid
+  bundleProduct    Product  @relation("BundleParent", fields: [bundleProductId], references: [id], onDelete: Cascade)
+  itemProductId    String   @map("item_product_id") @db.Uuid
+  itemProduct      Product  @relation("BundleChild", fields: [itemProductId], references: [id], onDelete: Restrict)
+  itemVariantId    String?  @map("item_variant_id") @db.Uuid
+  itemVariant      Variant? @relation(fields: [itemVariantId], references: [id], onDelete: SetNull)
+  quantity         Int      @default(1)
+
+  @@unique([bundleProductId, itemProductId])
+  @@map("bundle_items")
+}
+
+/// Generic media entity for product images and producer photos —
+/// never a bare uncontrolled URL string on the owning record.
+model Media {
+  id         String    @id @default(uuid()) @db.Uuid
+  url        String
+  altText    String    @map("alt_text") // never empty — enforced at validation layer
+  width      Int?
+  height     Int?
+  sortOrder  Int       @default(0) @map("sort_order")
+  productId  String?   @map("product_id") @db.Uuid
+  product    Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  producerId String?   @unique @map("producer_id") @db.Uuid
+  producer   Producer? @relation(fields: [producerId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([productId])
+  @@map("media")
+}
+
+// ──────────────────────────── Cart ────────────────────────────────────
+
+model Cart {
+  id         String    @id @default(uuid()) @db.Uuid
+  customerId String?   @map("customer_id") @db.Uuid
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  /// Random token in an httpOnly cookie identifies guest carts.
+  guestToken String?   @unique @map("guest_token")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  items CartItem[]
+
+  @@index([customerId])
+  @@map("carts")
+}
+
+model CartItem {
+  id                String           @id @default(uuid()) @db.Uuid
+  cartId            String           @map("cart_id") @db.Uuid
+  cart              Cart             @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId         String           @map("variant_id") @db.Uuid
+  variant           Variant          @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  packagingOptionId String?          @map("packaging_option_id") @db.Uuid
+  packagingOption   PackagingOption? @relation(fields: [packagingOptionId], references: [id], onDelete: SetNull)
+  /// 1..99, enforced server-side.
+  quantity          Int              @default(1)
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+
+  // Different packaging choices are commercially distinct lines, so the
+  // uniqueness key includes packagingOptionId (nulls are distinct in
+  // Postgres, so multiple `null`-packaging rows would not collide —
+  // application code enforces the null case explicitly).
+  @@unique([cartId, variantId, packagingOptionId])
+  @@map("cart_items")
+}
+
+// ──────────────────────────── Discounts ──────────────────────────────
+
+model Discount {
+  id              String         @id @default(uuid()) @db.Uuid
+  code            String         @unique // stored uppercase
+  type            DiscountType
+  value           Int // 1-100 if percentage; positive Toman amount if fixed
+  minOrderValue   Int?           @map("min_order_value")
+  maxUses         Int?           @map("max_uses") // null = unlimited
+  perCustomerLimit Int?          @map("per_customer_limit")
+  usedCount       Int            @default(0) @map("used_count")
+  startsAt        DateTime?      @map("starts_at")
+  expiresAt       DateTime?      @map("expires_at")
+  status          DiscountStatus @default(ACTIVE)
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  orders Order[]
+  usages DiscountUsage[]
+
+  @@map("discounts")
+}
+
+model DiscountUsage {
+  id         String    @id @default(uuid()) @db.Uuid
+  discountId String    @map("discount_id") @db.Uuid
+  discount   Discount  @relation(fields: [discountId], references: [id], onDelete: Cascade)
+  orderId    String    @unique @map("order_id") @db.Uuid
+  order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customerId String?   @map("customer_id") @db.Uuid
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([discountId])
+  @@map("discount_usages")
+}
+
+// ──────────────────────────── Orders ─────────────────────────────────
+
+model Order {
+  id            String      @id @default(uuid()) @db.Uuid
+  /// Human-readable, server-generated, e.g. "JB-20260908-0001".
+  orderNumber   String      @unique @map("order_number")
+  customerId    String?     @map("customer_id") @db.Uuid
+  customer      Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  guestEmail    String?     @map("guest_email")
+  guestPhone    String?     @map("guest_phone")
+  status        OrderStatus @default(PENDING_PAYMENT)
+  subtotal      Int
+  discountAmount Int        @default(0) @map("discount_amount")
+  discountId    String?     @map("discount_id") @db.Uuid
+  discount      Discount?   @relation(fields: [discountId], references: [id], onDelete: SetNull)
+  shippingCost  Int         @default(0) @map("shipping_cost")
+  total         Int
+  /// Snapshot only — never a live FK to `addresses`, so later address
+  /// edits never retroactively change historical order records.
+  shippingAddress Json      @map("shipping_address")
+  trackingNumber  String?   @map("tracking_number")
+  notes           String? // admin-internal only
+  /// Client-supplied idempotency key for the checkout submission that
+  /// created this order — prevents duplicate orders from retried requests.
+  checkoutIdempotencyKey String? @unique @map("checkout_idempotency_key")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  items                 OrderItem[]
+  statusHistory          OrderStatusHistory[]
+  paymentAttempts        PaymentAttempt[]
+  inventoryReservations  InventoryReservation[]
+  discountUsage           DiscountUsage?
+  review                  Review[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id                       String           @id @default(uuid()) @db.Uuid
+  orderId                  String           @map("order_id") @db.Uuid
+  order                    Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId                String           @map("variant_id") @db.Uuid
+  variant                  Variant          @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  packagingOptionId        String?          @map("packaging_option_id") @db.Uuid
+  packagingOption          PackagingOption? @relation(fields: [packagingOptionId], references: [id], onDelete: SetNull)
+  productNameSnapshot      String           @map("product_name_snapshot")
+  producerNameSnapshot     String           @map("producer_name_snapshot")
+  weightLabelSnapshot      String           @map("weight_label_snapshot")
+  packagingNameSnapshot    String?          @map("packaging_name_snapshot")
+  unitPriceSnapshot        Int              @map("unit_price_snapshot")
+  packagingPriceSnapshot   Int              @default(0) @map("packaging_price_snapshot")
+  quantity                 Int
+  lineTotal                Int              @map("line_total")
+
+  review Review?
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model OrderStatusHistory {
+  id                 String      @id @default(uuid()) @db.Uuid
+  orderId            String      @map("order_id") @db.Uuid
+  order              Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status             OrderStatus
+  changedByAdminId   String?     @map("changed_by_admin_id") @db.Uuid
+  changedByAdmin     AdminUser?  @relation("StatusChangedByAdmin", fields: [changedByAdminId], references: [id], onDelete: SetNull)
+  note               String?
+  createdAt          DateTime    @default(now()) @map("created_at")
+
+  @@index([orderId])
+  @@map("order_status_history")
+}
+
+/// One row per attempt so retries are auditable. Verification/confirmation
+/// must be idempotent — see `PaymentProvider` abstraction in apps/api.
+model PaymentAttempt {
+  id                 String                @id @default(uuid()) @db.Uuid
+  orderId            String                @map("order_id") @db.Uuid
+  order              Order                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method             PaymentMethod
+  status             PaymentAttemptStatus  @default(PENDING)
+  amount             Int
+  providerRef        String?               @map("provider_ref")
+  /// Unique per attempted charge — the idempotency key sent to /payments.
+  idempotencyKey     String                @unique @map("idempotency_key")
+  rawResponse        Json?                 @map("raw_response")
+  /// card-to-card / Sheba require manual confirmation by an admin.
+  confirmedByAdminId String?               @map("confirmed_by_admin_id") @db.Uuid
+  confirmedByAdmin   AdminUser?            @relation("PaymentConfirmedByAdmin", fields: [confirmedByAdminId], references: [id], onDelete: SetNull)
+  confirmedAt        DateTime?             @map("confirmed_at")
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+
+  @@index([orderId])
+  @@map("payment_attempts")
+}
+
+// ──────────────────────────── Reviews ────────────────────────────────
+
+/// Uniqueness on orderItemId is what enforces "one review per purchased
+/// item, only by the actual purchaser, only after delivery" (validated
+/// in application logic against order + order-item status).
+model Review {
+  id                 String       @id @default(uuid()) @db.Uuid
+  productId          String       @map("product_id") @db.Uuid
+  product            Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerId         String       @map("customer_id") @db.Uuid
+  customer           Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orderId            String       @map("order_id") @db.Uuid
+  order               Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItemId        String       @unique @map("order_item_id") @db.Uuid
+  orderItem          OrderItem    @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  rating             Int // 1-5
+  comment            String?      @db.VarChar(1000)
+  status             ReviewStatus @default(PENDING)
+  moderatedByAdminId String?      @map("moderated_by_admin_id") @db.Uuid
+  moderatedByAdmin   AdminUser?   @relation("ReviewModeratedByAdmin", fields: [moderatedByAdminId], references: [id], onDelete: SetNull)
+  moderatedAt        DateTime?    @map("moderated_at")
+  createdAt          DateTime     @default(now()) @map("created_at")
+
+  @@index([productId, status])
+  @@map("reviews")
+}
+
+// ──────────────────────────── Content / Settings ─────────────────────
+
+model ContentPage {
+  id                 String     @id @default(uuid()) @db.Uuid
+  slug               String     @unique // about, shipping-returns, authenticity, guide, contact
+  title              String
+  /// Sanitized HTML/Markdown, rendered through a safe renderer — never
+  /// raw dangerouslySetInnerHTML on unsanitized content.
+  body               String
+  updatedByAdminId   String?    @map("updated_by_admin_id") @db.Uuid
+  updatedByAdmin     AdminUser? @relation("ContentPageUpdatedByAdmin", fields: [updatedByAdminId], references: [id], onDelete: SetNull)
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+
+  @@map("content_pages")
+}
+
+/// Single-row configuration table — enforced at the app layer.
+model SiteSettings {
+  id                     String     @id @default(uuid()) @db.Uuid
+  storeName              String     @default("جنوبان") @map("store_name")
+  contactEmail           String     @map("contact_email")
+  contactPhone           String     @map("contact_phone")
+  flatShippingRate       Int        @map("flat_shipping_rate") // Toman
+  freeShippingEnabled    Boolean    @default(false) @map("free_shipping_enabled")
+  freeShippingThreshold  Int?       @map("free_shipping_threshold")
+  socialLinks            Json?      @map("social_links")
+  homepagePromoTitle     String?    @map("homepage_promo_title")
+  homepagePromoBody      String?    @map("homepage_promo_body")
+  homepagePromoLink      String?    @map("homepage_promo_link")
+  /// Real, admin-configurable trust-stats shown on the homepage hero —
+  /// never hardcoded marketing copy in the frontend.
+  statProducerCount      Int        @default(0) @map("stat_producer_count")
+  statProvinceCount      Int        @default(0) @map("stat_province_count")
+  statSatisfactionScore  Decimal    @default(0) @map("stat_satisfaction_score") @db.Decimal(2, 1)
+  updatedByAdminId       String?    @map("updated_by_admin_id") @db.Uuid
+  updatedByAdmin         AdminUser? @relation("SiteSettingsUpdatedByAdmin", fields: [updatedByAdminId], references: [id], onDelete: SetNull)
+  updatedAt              DateTime   @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}

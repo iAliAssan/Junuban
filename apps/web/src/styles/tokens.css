@@ -1,0 +1,129 @@
+/* ─────────────────────────────────────────────────────────────────────
+   Junubân design tokens — reproduce exactly (see spec §8 / master prompt
+   §14). Never hardcode a color/spacing value elsewhere when an
+   equivalent token exists here.
+   ───────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ---- Color ---- */
+  --paper: #faf7f0;
+  --white: #ffffff;
+  --ink: #1c1a17;
+  --ink-70: #4a4438;
+  --ink-45: #847c6c;
+  --terracotta: #b5502e;
+  --terracotta-dark: #8f3d22;
+  --terracotta-tint: #f3e3d8;
+  --sand: #e8dfc8;
+  --moss: #5a6448;
+  --line: #e6ded0;
+  --line-strong: #d8cdb4;
+  --focus: #1f6feb;
+
+  --success: #4a7c3f;
+  --success-tint: #e7efe3;
+  --warning: #b5792e;
+  --warning-tint: #f5e9d8;
+  --error: #a12f22;
+  --error-tint: #f5ded9;
+  --info: #1f6feb;
+  --info-tint: #e3edfc;
+
+  /* ---- Type scale (rescalable via --fs-base) ---- */
+  --fs-base: 16px;
+  --fs-xs: calc(var(--fs-base) * 0.75);
+  --fs-sm: calc(var(--fs-base) * 0.875);
+  --fs-md: var(--fs-base);
+  --fs-lg: calc(var(--fs-base) * 1.125);
+  --fs-xl: calc(var(--fs-base) * 1.375);
+  --fs-2xl: calc(var(--fs-base) * 1.75);
+  --fs-3xl: calc(var(--fs-base) * 2.375);
+  --fs-4xl: calc(var(--fs-base) * 3.25);
+
+  /* ---- Semantic type roles (components reference these, never --fs-* raw) ---- */
+  --text-hero-title-size: var(--fs-4xl);
+  --text-hero-title-lh: 1.28;
+  --text-hero-title-ls: -0.015em;
+  --text-page-title-size: var(--fs-3xl);
+  --text-page-title-lh: 1.3;
+  --text-section-title-size: var(--fs-2xl);
+  --text-section-title-lh: 1.3;
+  --text-section-title-ls: -0.01em;
+  --text-product-title-size: var(--fs-lg);
+  --text-product-title-lh: 1.4;
+  --text-price-size: var(--fs-lg);
+  --text-price-lh: 1;
+  --text-price-lg-size: var(--fs-2xl);
+  --text-meta-size: var(--fs-xs);
+  --text-meta-lh: 1.5;
+  --text-label-size: var(--fs-xs);
+  --text-label-ls: 0.02em;
+  --text-button-size: var(--fs-md);
+  --text-body-size: var(--fs-lg);
+  --text-body-lh: 1.8;
+  --text-body-sm-size: var(--fs-sm);
+  --text-body-sm-lh: 1.75;
+  --text-caption-size: var(--fs-xs);
+  --text-form-label-size: var(--fs-sm);
+  --text-form-input-size: var(--fs-md);
+  --text-table-header-size: var(--fs-xs);
+  --text-table-cell-size: var(--fs-sm);
+  --text-toast-size: var(--fs-sm);
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-black: 800;
+
+  /* ---- Spacing & radius ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* ---- Photography / placeholder treatment ---- */
+  --shot-grain-opacity: 0.05;
+  --shot-vignette: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.32) 100%);
+  --grain-texture: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+
+  --duo-date: radial-gradient(120% 140% at 20% 15%, #e7b16a 0%, #b5502e 45%, #5c2c15 100%);
+  --duo-herb: radial-gradient(120% 140% at 20% 15%, #a7b073 0%, #5a6448 48%, #2b3020 100%);
+  --duo-saffron: radial-gradient(120% 140% at 20% 15%, #e2a24a 0%, #a85a1e 48%, #4f2a0f 100%);
+  --duo-craft: radial-gradient(120% 140% at 20% 15%, #d9b077 0%, #8a5a2c 48%, #432711 100%);
+  --duo-hero: radial-gradient(130% 150% at 25% 10%, #e7b16a 0%, #b5502e 50%, #4a230f 100%);
+
+  /* ---- Shadows ---- */
+  --shadow-sm: 0 1px 2px rgba(28, 26, 23, 0.06);
+  --shadow-md: 0 12px 32px -16px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 24px 64px -24px rgba(0, 0, 0, 0.35);
+  --shadow-primary-btn: 0 8px 20px -8px rgba(181, 80, 46, 0.5);
+
+  /* ---- Z-index scale ---- */
+  --z-header: 50;
+  --z-drawer: 100;
+  --z-modal: 110;
+  --z-toast: 120;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,27 @@
+.breadcrumbs {
+  padding-block: var(--space-4);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-meta-size);
+  color: var(--ink-45);
+}
+
+.list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.list a:hover {
+  color: var(--ink);
+}
+
+.current {
+  color: var(--ink-70);
+  font-weight: var(--fw-medium);
+}

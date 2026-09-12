@@ -1,0 +1,42 @@
+.nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-6);
+}
+
+.pageLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--ink-70);
+}
+
+.pageLink:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.current {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--white);
+}
+
+.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.ellipsis {
+  color: var(--ink-45);
+  padding-inline: var(--space-1);
+}

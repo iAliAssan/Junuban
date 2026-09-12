@@ -1,0 +1,124 @@
+@import "../styles/tokens.css";
+
+/* ---- Reset ------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Vazirmatn", sans-serif;
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0;
+}
+
+/* ---- Focus ---------------------------------------------------------
+   Neutral --focus ring for structural/navigational elements. Form
+   inputs use a branded terracotta glow instead (see form component CSS). */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---- Skip link -------------------------------------------------------
+   Must be the first focusable element on every page. */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  right: var(--space-4);
+  z-index: var(--z-toast);
+  background: var(--ink);
+  color: var(--paper);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  font-weight: var(--fw-semibold);
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: var(--space-3);
+}
+
+/* ---- Container -------------------------------------------------------- */
+.container {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: var(--space-5);
+}
+
+@media (max-width: 999px) {
+  .container {
+    padding-inline: var(--space-4);
+  }
+}
+
+/* ---- Screen-reader only ------------------------------------------------ */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

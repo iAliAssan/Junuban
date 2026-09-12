@@ -1,0 +1,66 @@
+.wrapper {
+  position: relative;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 40px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--ink-70);
+  white-space: nowrap;
+}
+
+.trigger:hover {
+  border-color: var(--line-strong);
+}
+
+.chevron {
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  inset-inline-end: 0;
+  z-index: var(--z-drawer);
+  min-width: 200px;
+  max-width: min(90vw, 240px);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-2);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  color: var(--ink-70);
+}
+
+.item:hover {
+  background: var(--paper);
+}
+
+.itemActive {
+  color: var(--terracotta-dark);
+  font-weight: var(--fw-semibold);
+  background: var(--terracotta-tint);
+}
