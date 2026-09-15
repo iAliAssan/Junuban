@@ -1,0 +1,43 @@
+.bar {
+  background: var(--ink);
+  color: #c9c2b0;
+  font-size: var(--text-caption-size);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: var(--space-2);
+  gap: var(--space-4);
+}
+
+.shipping {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.links {
+  display: flex;
+  gap: var(--space-5);
+}
+
+.links a {
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.links a:hover {
+  color: var(--white);
+}
+
+.links li:not(:first-child) {
+  display: none;
+}
+
+@media (min-width: 560px) {
+  .links li:not(:first-child) {
+    display: block;
+  }
+}

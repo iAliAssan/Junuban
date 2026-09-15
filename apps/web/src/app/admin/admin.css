@@ -1,0 +1,121 @@
+@import "../../styles/tokens.css";
+
+/* ─────────────────────────────────────────────────────────────────────
+   Admin-scoped base rules. Deliberately a separate file from the
+   storefront's globals.css, not a re-import of it — the admin body has
+   its own root layout (see layout.tsx), and several storefront-only
+   rules there (the 1440px `.container`, the `main` page-fade-in
+   keyframe tuned for full-bleed storefront pages) don't fit an
+   admin shell with a persistent sidebar. Design tokens (colors, type
+   scale, spacing) ARE shared — imported from the same tokens.css the
+   storefront uses, per the locked design system (master prompt §14).
+   ───────────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+.admin-body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Vazirmatn", sans-serif;
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+}
+
+img,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0;
+}
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  right: var(--space-4);
+  z-index: var(--z-toast);
+  background: var(--ink);
+  color: var(--paper);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  font-weight: var(--fw-semibold);
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: var(--space-3);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
