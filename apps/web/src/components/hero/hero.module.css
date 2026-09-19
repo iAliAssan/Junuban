@@ -1,0 +1,211 @@
+.hero {
+  padding-block: var(--space-7);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  align-items: center;
+}
+
+@media (min-width: 1000px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-8);
+  }
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-label-size);
+  letter-spacing: var(--text-label-ls);
+  font-weight: var(--fw-semibold);
+  color: var(--terracotta-dark);
+  margin-bottom: var(--space-4);
+}
+
+.eyebrowDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--terracotta);
+}
+
+.title {
+  font-size: var(--text-hero-title-size);
+  line-height: var(--text-hero-title-lh);
+  letter-spacing: var(--text-hero-title-ls);
+  font-weight: var(--fw-black);
+  margin-bottom: var(--space-4);
+}
+
+@media (max-width: 560px) {
+  .title {
+    font-size: calc(var(--fs-base) * 2.4);
+  }
+}
+
+.body {
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-lh);
+  color: var(--ink-70);
+  margin-bottom: var(--space-6);
+  max-width: 46ch;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-7);
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--terracotta);
+  color: var(--white);
+  font-weight: var(--fw-bold);
+  font-size: var(--text-button-size);
+  padding: 14px 28px;
+  border-radius: var(--radius-md);
+  min-height: 44px;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease;
+}
+
+.btnPrimary:hover {
+  background: var(--terracotta-dark);
+  box-shadow: var(--shadow-primary-btn);
+}
+
+.btnPrimary:active {
+  transform: scale(0.98);
+}
+
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  font-weight: var(--fw-bold);
+  font-size: var(--text-button-size);
+  padding: 14px 28px;
+  border-radius: var(--radius-md);
+  min-height: 44px;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.btnSecondary:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.stats {
+  display: flex;
+  gap: var(--space-7);
+}
+
+.statNumber {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-black);
+  color: var(--ink);
+  display: block;
+}
+
+.statLabel {
+  font-size: var(--text-meta-size);
+  color: var(--ink-45);
+}
+
+/* ---- Visual column ---- */
+.visual {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 16 / 11;
+  background: var(--duo-hero);
+}
+
+@media (min-width: 1000px) {
+  .visual {
+    aspect-ratio: 4 / 5;
+  }
+}
+
+.visual::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--grain-texture);
+  background-size: 120px 120px;
+  mix-blend-mode: overlay;
+  opacity: var(--shot-grain-opacity);
+  pointer-events: none;
+}
+
+.visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--shot-vignette);
+  pointer-events: none;
+}
+
+.markPill {
+  position: absolute;
+  top: var(--space-4);
+  inset-inline-start: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(28, 26, 23, 0.45);
+  color: var(--white);
+  font-size: var(--text-caption-size);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+}
+
+.markDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--white);
+}
+
+.infoCard {
+  position: absolute;
+  bottom: var(--space-4);
+  inset-inline: var(--space-4);
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-md);
+}
+
+.infoCardName {
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-1);
+}
+
+.infoCardMeta {
+  font-size: var(--text-meta-size);
+  color: var(--ink-45);
+  margin-bottom: var(--space-2);
+}
+
+.infoCardPrice {
+  font-size: var(--text-price-size);
+  font-weight: var(--fw-bold);
+  color: var(--terracotta-dark);
+}

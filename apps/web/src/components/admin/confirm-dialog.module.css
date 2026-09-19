@@ -1,0 +1,112 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(28, 26, 23, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  animation: confirm-dialog-scrim-in var(--duration-fast) var(--ease-out);
+}
+
+.dialog {
+  width: 100%;
+  max-width: 420px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5);
+  animation: confirm-dialog-in var(--duration-base) var(--ease-spring);
+}
+
+@keyframes confirm-dialog-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes confirm-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrim,
+  .dialog {
+    animation: none;
+  }
+}
+
+.title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-2);
+}
+
+.description {
+  font-size: var(--fs-sm);
+  color: var(--ink-70);
+  line-height: var(--text-body-sm-lh);
+  margin-bottom: var(--space-5);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.cancelButton,
+.confirmButton,
+.destructiveButton {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-button-size);
+  font-weight: var(--fw-semibold);
+  transition: background-color var(--duration-instant) var(--ease-standard), opacity var(--duration-instant);
+}
+
+.cancelButton {
+  background: var(--paper);
+  color: var(--ink-70);
+  border: 1px solid var(--line);
+}
+
+.cancelButton:hover {
+  border-color: var(--line-strong);
+}
+
+.confirmButton {
+  background: var(--terracotta);
+  color: var(--white);
+}
+
+.confirmButton:hover {
+  background: var(--terracotta-dark);
+}
+
+.destructiveButton {
+  background: var(--error);
+  color: var(--white);
+}
+
+.destructiveButton:hover {
+  opacity: 0.9;
+}
+
+.cancelButton:disabled,
+.confirmButton:disabled,
+.destructiveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

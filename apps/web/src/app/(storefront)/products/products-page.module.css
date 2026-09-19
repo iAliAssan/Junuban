@@ -1,0 +1,10 @@
+.layout {
+  padding-bottom: var(--space-8);
+}
+
+.title {
+  font-size: var(--text-page-title-size);
+  line-height: var(--text-page-title-lh);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-5);
+}

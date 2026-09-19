@@ -1,0 +1,119 @@
+# Junubân — production-style Docker Compose stack.
+#
+# This is deliberately a SEPARATE file from docker-compose.yml at the
+# repo root. That file is documented in README.md as local-dev
+# infrastructure only (Postgres/Redis/MinIO), with the actual apps run
+# directly via `npm run dev:*` for fast hot-reload — rewriting it to
+# also run the apps in containers would break that documented workflow
+# and give a strictly worse local dev loop (rebuild-on-change instead of
+# tsx watch / next dev).
+#
+# This file is for the OTHER real deployment target the project commits
+# to: a plain Linux VPS running Docker (see apps/api/Dockerfile and
+# apps/worker/Dockerfile's own docstrings — both are explicitly written
+# to run as normal long-running Node processes outside Vercel). It runs
+# the API, the worker, and their infra dependencies together as one
+# stack. It deliberately does NOT include the web app: this project's
+# Next.js frontend is expected to deploy to Vercel (or any standard
+# Next.js host) directly rather than via Docker — nothing in this
+# repository documents or expects a containerized web app, and adding
+# one here would be inventing a deployment path nobody asked for rather
+# than completing one that's already implied elsewhere.
+#
+# Usage:
+#   cp .env.example .env      # fill in real production secrets
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+#
+# Then run migrations once against the running Postgres container:
+#   docker compose -f docker-compose.prod.yml exec api npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
+#
+# Note on DATABASE_URL/REDIS_URL in your .env for this file specifically:
+# they must point at the *service names* below (postgres, redis), not
+# localhost — e.g. postgresql://junuban:<password>@postgres:5432/junuban,
+# redis://redis:6379 — since these containers reach each other over the
+# compose network, not the host's loopback interface.
+
+name: junuban-prod
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-junuban}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env for production}
+      POSTGRES_DB: ${POSTGRES_DB:-junuban}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-junuban} -d ${POSTGRES_DB:-junuban}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # No published port by default — only the api/worker containers on
+    # this compose network need to reach Postgres. Uncomment to allow
+    # host access (e.g. for `psql` or a GUI client) during setup:
+    # ports:
+    #   - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # These two intentionally override whatever's in .env, since — as
+      # the note above explains — the values a human fills in for local
+      # reference (localhost) are wrong from inside this network.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-junuban}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-junuban}?schema=public
+      REDIS_URL: redis://redis:6379
+      PORT: "4000"
+    ports:
+      - "4000:4000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4000/api/v1/health', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-junuban}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-junuban}?schema=public
+      REDIS_URL: redis://redis:6379
+    # No healthcheck/port — the worker holds no HTTP port open (see
+    # apps/worker/Dockerfile); Docker's `restart: unless-stopped` plus
+    # BullMQ's own reconnect logic is the resilience story here.
+
+volumes:
+  postgres-data:
+  redis-data:
