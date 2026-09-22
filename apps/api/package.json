@@ -5,7 +5,7 @@
   "description": "Junubân backend API (NestJS, /api/v1)",
   "scripts": {
     "postinstall": "prisma generate",
-    "vercel-build": "npm run prisma:generate && npm run build",
+    "vercel-build": "npm run prisma:migrate:deploy && npm run prisma:generate && npm run build",
     "build": "nest build",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
