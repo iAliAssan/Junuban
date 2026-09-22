@@ -41,6 +41,9 @@ const nextConfig = {
       // Placeholder images used only by the development seed data
       // (apps/api/prisma/seed.ts) until real product photography exists.
       { protocol: "https", hostname: "placehold.co" },
+      { protocol: "https", hostname: "dkstatics-public.digikala.com" },
+      { protocol: "https", hostname: "randomimageurl.com" },
+      { protocol: "https", hostname: "dl.toolschi.com" },
       // Wherever S3_PUBLIC_BASE_URL actually points in this environment
       // (see the comment above) — omitted if that var isn't set or is
       // malformed, in which case only the two static entries above apply.
