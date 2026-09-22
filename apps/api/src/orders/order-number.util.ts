@@ -43,7 +43,7 @@ export function randomOrderSuffix(): string {
   const bytes = randomBytes(7);
   let result = "";
   for (let i = 0; i < 7; i++) {
-    result += ALPHABET[bytes[i] % ALPHABET.length];
+    result += ALPHABET[bytes[i]! % ALPHABET.length];
   }
   return result;
 }

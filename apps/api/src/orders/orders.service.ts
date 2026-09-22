@@ -44,7 +44,7 @@ export class OrdersService {
     cartId: string,
     dto: CheckoutDto,
     customerId: string | null,
-  ): Promise<{ order: OrderWithRelations; paymentInstructions?: string; redirectUrl?: string }> {
+  ): Promise<{ order: OrderWithRelations; paymentInstructions?: string; redirectUrl?: string; cardDisplay?: { number: string; holderName: string | null; bankName: string | null; photo: { url: string; altText: string } | null; adminNotes: string | null } }> {
     // Idempotent replay: if this exact checkout attempt already produced
     // an order, return it rather than creating a second one.
     const existing = await this.prisma.order.findUnique({
