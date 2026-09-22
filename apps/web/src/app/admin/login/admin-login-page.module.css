@@ -1,0 +1,122 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+}
+
+.title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  text-align: center;
+  margin-bottom: var(--space-1);
+}
+
+.subtitle {
+  font-size: var(--fs-sm);
+  color: var(--terracotta-dark);
+  font-weight: var(--fw-semibold);
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.field label {
+  font-size: var(--text-form-label-size);
+  font-weight: var(--fw-medium);
+  color: var(--ink-70);
+}
+
+.field input {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  font-size: var(--fs-md);
+  text-align: left;
+  transition:
+    border-color var(--duration-instant) var(--ease-standard),
+    box-shadow var(--duration-instant) var(--ease-standard);
+}
+
+.field input:focus-visible {
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px var(--terracotta-tint);
+  outline: none;
+}
+
+.formError {
+  font-size: var(--fs-sm);
+  color: var(--error);
+  background: var(--error-tint);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+  animation: admin-form-error-in var(--duration-fast) var(--ease-out) both;
+}
+
+@keyframes admin-form-error-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.submitButton {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--terracotta);
+  color: var(--white);
+  font-weight: var(--fw-bold);
+  margin-top: var(--space-2);
+  transition:
+    background var(--duration-instant) var(--ease-standard),
+    opacity var(--duration-instant) var(--ease-standard),
+    transform var(--duration-instant) var(--ease-standard);
+}
+
+.submitButton:hover:not(:disabled) {
+  background: var(--terracotta-dark);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .formError {
+    animation: none;
+  }
+  .submitButton:active:not(:disabled) {
+    transform: none;
+  }
+}

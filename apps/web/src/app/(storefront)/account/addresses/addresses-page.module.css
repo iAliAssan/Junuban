@@ -1,0 +1,271 @@
+.layout {
+  padding-block: var(--space-8);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.title {
+  font-size: var(--text-page-title-size);
+  font-weight: var(--fw-bold);
+}
+
+.backLink {
+  display: inline-block;
+  margin-bottom: var(--space-5);
+  font-size: var(--fs-sm);
+  color: var(--ink-45);
+}
+
+.backLink:hover {
+  color: var(--ink);
+}
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--terracotta);
+  color: var(--white);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  box-shadow: var(--shadow-primary-btn);
+}
+
+.addButton:hover {
+  background: var(--terracotta-dark);
+}
+
+.emptyState,
+.errorState {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  color: var(--ink-45);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.addressCard {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.addressCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.recipientName {
+  font-weight: var(--fw-semibold);
+}
+
+.defaultBadge {
+  display: inline-block;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--success-tint);
+  color: var(--success);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+}
+
+.addressText {
+  font-size: var(--fs-sm);
+  color: var(--ink-70);
+  line-height: var(--text-body-sm-lh);
+  margin-bottom: var(--space-1);
+}
+
+.phoneText {
+  font-size: var(--fs-sm);
+  color: var(--ink-45);
+  direction: ltr;
+  text-align: right;
+  margin-bottom: var(--space-3);
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.actionButton {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+}
+
+.actionButton:hover:not(:disabled) {
+  border-color: var(--terracotta);
+  color: var(--terracotta-dark);
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.actionButtonDestructive {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--error);
+  background: var(--white);
+  color: var(--error);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+}
+
+.actionButtonDestructive:hover:not(:disabled) {
+  background: var(--error-tint);
+}
+
+.actionButtonDestructive:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---- Slide-over form panel (matches the admin reference-data pattern) */
+
+.panelScrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 16, 12, 0.4);
+  z-index: var(--z-modal);
+}
+
+.panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  inset-inline-end: 0;
+  width: min(480px, 100vw);
+  background: var(--white);
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--line);
+}
+
+.panelTitle {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+}
+
+.panelBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-5);
+}
+
+.panelFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--line);
+}
+
+.saveButton {
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--terracotta);
+  color: var(--white);
+  font-size: var(--text-button-size);
+  font-weight: var(--fw-semibold);
+  box-shadow: var(--shadow-primary-btn);
+}
+
+.saveButton:hover:not(:disabled) {
+  background: var(--terracotta-dark);
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink-70);
+  font-size: var(--text-button-size);
+  font-weight: var(--fw-medium);
+}
+
+.cancelButton:hover {
+  border-color: var(--line-strong);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  color: var(--ink-70);
+}
+
+.iconButton:hover {
+  background: var(--paper);
+}
+
+.formError {
+  font-size: var(--fs-sm);
+  color: var(--error);
+  background: var(--error-tint);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.defaultCheckboxField {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--ink-70);
+  margin-top: var(--space-4);
+}
+
+.defaultCheckboxField input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}

@@ -1,0 +1,71 @@
+.card {
+  max-width: 380px;
+  margin: 0 auto var(--space-6);
+  padding: var(--space-4);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  text-align: right;
+}
+
+.imageWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.586 / 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--space-4);
+  background: var(--paper);
+}
+
+.image {
+  object-fit: cover;
+}
+
+.numberRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.number {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.05em;
+}
+
+.copyButton {
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--ink-70);
+}
+
+.copyButton:hover {
+  border-color: var(--terracotta);
+  color: var(--terracotta-dark);
+}
+
+.copyButton:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.holderRow {
+  font-size: var(--fs-sm);
+  color: var(--ink-70);
+  margin-bottom: var(--space-2);
+}
+
+.notes {
+  font-size: var(--fs-sm);
+  color: var(--ink-45);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}

@@ -1,0 +1,123 @@
+.layout {
+  padding-block: var(--space-8);
+  min-height: 60vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.centerRow {
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+}
+
+.title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-2);
+  text-align: center;
+}
+
+.subtitle {
+  font-size: var(--fs-sm);
+  color: var(--ink-45);
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.field label {
+  font-size: var(--text-form-label-size);
+  font-weight: var(--fw-medium);
+  color: var(--ink-70);
+}
+
+.field input {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  font-size: var(--fs-lg);
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+.field input:focus-visible {
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px var(--terracotta-tint);
+  outline: none;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--terracotta);
+  color: var(--white);
+  font-weight: var(--fw-bold);
+}
+
+.submitButton:hover:not(:disabled) {
+  background: var(--terracotta-dark);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.formError {
+  font-size: var(--fs-sm);
+  color: var(--error);
+  background: var(--error-tint);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.changePhone {
+  display: block;
+  text-align: center;
+  margin-top: var(--space-4);
+  font-size: var(--fs-sm);
+  color: var(--ink-45);
+}
+
+.resendButton {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: var(--space-3);
+  padding: 10px;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--terracotta-dark);
+  border-radius: var(--radius-sm);
+}
+
+.resendButton:hover:not(:disabled) {
+  background: var(--terracotta-tint);
+}
+
+.resendButton:disabled {
+  color: var(--ink-45);
+  cursor: not-allowed;
+}

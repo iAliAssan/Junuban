@@ -1,0 +1,214 @@
+.layout {
+  padding-block: var(--space-8);
+}
+
+.title {
+  font-size: var(--text-page-title-size);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-2);
+}
+
+.subtitle {
+  font-size: var(--fs-sm);
+  color: var(--ink-45);
+  margin-bottom: var(--space-6);
+}
+
+.form {
+  max-width: 420px;
+  margin: 0 auto var(--space-8);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.field label {
+  font-size: var(--text-form-label-size);
+  font-weight: var(--fw-medium);
+  color: var(--ink-70);
+}
+
+.field input {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  font-size: var(--text-form-input-size);
+  direction: ltr;
+  text-align: right;
+}
+
+.field input:focus-visible {
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px var(--terracotta-tint);
+  outline: none;
+}
+
+.field input[aria-invalid="true"] {
+  border-color: var(--error);
+}
+
+.fieldError {
+  font-size: var(--text-caption-size);
+  color: var(--error);
+}
+
+.submitButton {
+  width: 100%;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--terracotta);
+  color: var(--white);
+  font-weight: var(--fw-semibold);
+  box-shadow: var(--shadow-primary-btn);
+}
+
+.submitButton:hover:not(:disabled) {
+  background: var(--terracotta-dark);
+}
+
+.submitButton:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.formError {
+  font-size: var(--fs-sm);
+  color: var(--error);
+  background: var(--error-tint);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.resultLayout {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  margin-bottom: var(--space-4);
+}
+
+.statusPending {
+  background: var(--warning-tint);
+  color: var(--warning);
+}
+
+.statusInfo {
+  background: var(--info-tint);
+  color: var(--info);
+}
+
+.statusSuccess {
+  background: var(--success-tint);
+  color: var(--success);
+}
+
+.statusError {
+  background: var(--error-tint);
+  color: var(--error);
+}
+
+.newSearchLink {
+  display: inline-block;
+  margin-top: var(--space-5);
+  font-size: var(--fs-sm);
+  color: var(--terracotta-dark);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.newSearchLink:hover {
+  text-decoration: underline;
+}
+
+.centered {
+  text-align: center;
+}
+
+.section {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+}
+
+.sectionTitle {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-3);
+}
+
+.itemGroup {
+  min-width: 0;
+}
+
+.itemGroup:last-child .itemRow:last-child {
+  border-bottom: none;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+
+.itemGroup .itemRow + .itemRow {
+  padding-top: 0;
+  border-top: none;
+}
+
+.itemInfo {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.itemMeta {
+  font-size: var(--text-caption-size);
+  color: var(--ink-45);
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-sm);
+  color: var(--ink-70);
+  padding-block: var(--space-2);
+}
+
+.summaryTotalRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  padding-top: var(--space-4);
+  margin-top: var(--space-2);
+  border-top: 1px solid var(--line);
+}
